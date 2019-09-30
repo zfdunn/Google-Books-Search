@@ -1,40 +1,30 @@
 const express = require("express");
+const app = express();
 const mongoose = require("mongoose");
 const PORT = process.env.PORT || 3001;
-const bodyParser = require("body-parser");
-const routes = require("./routes");
-const logger = require("morgan");
-const app = express();
-
-// app.get("/api", (req, res) => {
-//     const api = [
-//         { id: 1, firstName: "Zach", lastName: "Dunn"},
-//     ]
-// });
-
-
-// app.listen(port, () => console.log(`Server started on port ${port}`));
-
-// static assets
-if (process.env.NODE_ENV === "production"){
-    app.use(express.static("client/build"));
-};
-
-// -------------------------------------------
-// parse request body as json
-app.use(express.urlencoded({ extended: false}));
+// const bodyParser = require("body-parser");
+const routes = require('./routes')
+const logger = require('morgan')
+//==================================================
+//configure body parsing for ajax reqs
+app.use(express.urlencoded({ extended:true }));
 app.use(express.json());
-app.use(express.static(__dirname + "/public"));
-
-// -------------------------------------------
-// mongodb connection
-// var DB_Connect = process.env.MONGODB_URI || "mongodb://localhost/booksApp";
-    mongoose.connect(DB_Connect, {usedNewUrlParser: true }, function (err){
-        if (err){
-            console.log(err);
-        }
-        else {
-            console.log("connected to database");
-        };
-    });
-
+//==================================================
+//add route, api's & views
+app.use(routes);
+app.use(logger('dev'));
+//serve up static assets (heroku)
+if (process.env.NODE_ENV === 'production'){
+    app.use(express.static('client/build'));
+}
+//==================================================
+//connect to mongodb
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost/Google-Books-Search',
+{ useCreateIndex: true, useNewUrlParser: true })
+.then(() => {
+    console.log('Cannot connect to database: ' + err)});
+//==================================================
+// start the api server
+app.listen(PORT, () => {
+    console.log(`🌎  ==> API Server now listening on PORT ${PORT}!`)
+});
